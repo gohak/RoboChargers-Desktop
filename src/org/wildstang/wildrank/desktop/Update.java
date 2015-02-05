@@ -9,7 +9,7 @@ public class Update {
 	public int current = 0;
 
 	public Update() {
-		mode = "WildRank";
+		mode = "RoboChargers";
 	}
 
 	public void setMode(String mode) {

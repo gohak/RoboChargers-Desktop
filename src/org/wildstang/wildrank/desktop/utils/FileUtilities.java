@@ -1,22 +1,54 @@
 package org.wildstang.wildrank.desktop.utils;
 
+import java.awt.AWTEvent;
+import java.awt.AWTException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+import jmtp.PortableDevice;
+import jmtp.PortableDeviceManager;
+import jmtp.PortableDeviceObject;
+import jmtp.PortableDeviceStorageObject;
+
 import org.apache.commons.io.FileUtils;
 import org.wildstang.wildrank.desktop.GlobalAppHandler;
 
+import be.derycke.pieter.com.COMException;
+import jmtp.*;
+
 public class FileUtilities {
 
+	public static boolean isTabletConnected() {
+		System.setProperty( "java.library.path", "libs" );
+		
+        PortableDeviceManager manager = new PortableDeviceManager();
+
+        for (PortableDevice device : manager.getDevices()) {
+            // Connect to the tablet now
+        	device.open();
+            // debug output
+            Logger.getInstance().log("Tablet Found - " + device.getModel());
+            device.close();
+            
+            // Found a tablet connected
+            return true;
+        } 
+		return false;
+	}
+	
 	public static boolean isUSBConnected() {
 		// Test if USB is connected
 		String flashDriveSyncedDirectoryString = GlobalAppHandler.getInstance().getAppData().getFlashDriveLocation() + File.separator + "synced";
@@ -33,6 +65,261 @@ public class FileUtilities {
 		return new File("save.json").exists();
 	}
 
+	public static void syncWithTablet() throws IOException {
+		// Copy all the content from the local Tablet Flash scratch directory to Tablet
+		if (syncLocalFlashToTablet()) {
+
+			// Now wait for user input. The user would need to now sync the tablet via "Synchronize with PC" on the Tablet
+			if (waitForTabletToSync() == 1) {
+				// Now it copies all the data out of the tablet back to the local flash location
+				syncTabletToLocalFlash();
+			}
+			
+			// Now delete all the content from the tablet
+			// There should only be one copy maintained which is on your local Flash drive
+			// or in our case, we are using the PC
+			cleanTabletData();
+		}
+		else {
+            // if frc folder is not found, prompt user
+	        frcFolderNotFound();
+		}
+	}
+	
+	public static boolean syncLocalFlashToTablet() throws IOException {
+		System.setProperty( "java.library.path", "libs" );
+
+		boolean frcFolderFound = false;
+		
+        PortableDeviceManager manager = new PortableDeviceManager();
+        
+        // Get the first device on the list.
+        for (PortableDevice device : manager.getDevices()) {
+	        // Connect to the tablet now
+	        device.open();
+	        
+	        // debug output
+	        Logger.getInstance().log("Copying data from Local Flash Scratch to Tablet - " + device.getModel());
+
+	        // Iterate over deviceObjects
+	        for(PortableDeviceObject object : device.getRootObjects()) {
+	       	
+	            // If the object is a storage object
+	            if(object instanceof PortableDeviceStorageObject) {
+	                PortableDeviceStorageObject storage = (PortableDeviceStorageObject)object;
+	                
+	                for(PortableDeviceObject o2 :  storage.getChildObjects()) {
+	                	System.out.println(o2.getOriginalFileName());
+	                	
+	                	// Check if the device object is a folder first
+	                	if (o2 instanceof PortableDeviceFolderObject) {
+	                		// Check if there is a frc folder
+    	                    if (o2.getOriginalFileName().equals("frc")) {
+    	                    	frcFolderFound = true;
+    	                    	
+    	                    	// Now list all the content inside this frc folder object
+    	                    	PortableDeviceFolderObject frcFolder = (PortableDeviceFolderObject)o2;
+    	                		File relativeFrcFolder = new File(GlobalAppHandler.getInstance().getAppData().getFlashDriveLocation() + File.separator);
+    	                		copyLocalFlashToTablet(device, frcFolder, relativeFrcFolder);
+    	                    }
+	                	}
+	                }   
+	            }
+	        }
+	        device.close();
+        }
+        // Return the status if frc folder was successfully synced.
+        return frcFolderFound;
+	}
+	
+	public static int frcFolderNotFound() {
+		JFrame frame = new JFrame();
+		String[] options = { "Cancel"};
+		int choice = JOptionPane.showOptionDialog(frame, "This must be a new tablet as FRC folder is not found. Please create a \"frc\" folder on the root of the Tablet Internal Storage. Then try again.", "frc Folder Not Found", JOptionPane.CANCEL_OPTION, JOptionPane.ERROR_MESSAGE, null,
+				options, options[0]);
+		return choice;
+	}
+
+	public static void copyLocalFlashToTablet(PortableDevice device, PortableDeviceFolderObject dir, File flashFolder) {
+		// Obtain the list of folders and files here
+		File[] files = flashFolder.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				if (file.isFile() && !file.isHidden()) {
+					// If it is a file, copy the file
+					Logger.getInstance().log("copyLocalFlashToTablet; file:               " + file.getName());
+					BigInteger a = new BigInteger("12345");
+					try {
+						dir.addAudioObject(file,"artist", "album", a);
+					} catch (IOException e) {
+						
+					}
+				} else if (file.isDirectory()) {
+					Logger.getInstance().log("copyLocalFlashToTablet; directory: " + file.getAbsolutePath());
+					PortableDeviceFolderObject dirI = dir;
+					boolean createFolder = true;
+					
+					// Check if the folder exist first
+					if (dir.getChildObjects() != null) {
+						for(PortableDeviceObject folders :  dir.getChildObjects()) {
+				        	if (folders instanceof PortableDeviceFolderObject) {
+								PortableDeviceFolderObject folder = (PortableDeviceFolderObject)folders;
+								// Create the directory if the folder does not exist
+								if (folder.getOriginalFileName().equals(file.getName())) {
+									createFolder = false;
+									dirI = folder;
+									
+									// break out of the for loop early
+									break;
+								}
+				        	}
+						}
+					}
+
+					if (createFolder) {
+						Logger.getInstance().log("copyLocalFlashToTablet; creating directory - " + file.getName());
+
+						// Create the directory
+						dirI = dir.createFolderObject(file.getName());
+					}
+					// Iterate through
+					copyLocalFlashToTablet(device, dirI, file);
+				}
+			}
+		}
+	}
+
+	public static void syncTabletToLocalFlash() throws IOException {		
+        PortableDeviceManager manager = new PortableDeviceManager();
+        
+        // Get the first device on the list.
+        for (PortableDevice device : manager.getDevices()) {
+	        // Connect to the tablet now
+	        device.open();
+	        
+	        // debug output
+	        Logger.getInstance().log("Syncing with " + device.getModel());
+	        System.out.println("---------------");
+	
+	        // Iterate over deviceObjects
+	        for(PortableDeviceObject object : device.getRootObjects()) {
+	        	System.out.println(object);
+	       	
+	            // If the object is a storage object
+	            if(object instanceof PortableDeviceStorageObject) {
+	                PortableDeviceStorageObject storage = (PortableDeviceStorageObject)object;
+	                
+	                for(PortableDeviceObject o2 :  storage.getChildObjects()) {
+	                	System.out.println(o2.getOriginalFileName());
+	                	
+	                	// Check if the device object is a folder first
+	                	if (o2 instanceof PortableDeviceFolderObject) {
+	                		// Check if there is a frc folder
+    	                    if (o2.getOriginalFileName().equals("frc")) {
+    	                    	
+    	                    	// Now list all the content inside this frc folder object
+    	                    	PortableDeviceFolderObject frcFolder = (PortableDeviceFolderObject)o2;
+    	                		File relativeFrcFolder = new File(GlobalAppHandler.getInstance().getAppData().getFlashDriveLocation() + File.separator);
+    	                		copyTabletToLocalFlash(device, frcFolder, relativeFrcFolder);
+    	                    }	                		
+	                	}
+	            	}              
+	            }
+	        }
+	        device.close();
+        }
+	}
+		
+	public static int waitForTabletToSync() {
+		JFrame frame = new JFrame();
+		String[] options = { "Cancel", "Done!" };
+		int choice = JOptionPane.showOptionDialog(frame, "On the Tablet, Press Synchronize with PC now TWICE", "Synchronize with Tablet", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
+				options, options[0]);
+		return choice;
+	}
+
+	public static void copyTabletToLocalFlash(PortableDevice device, PortableDeviceFolderObject dir, File folder) {
+    	for(PortableDeviceObject file :  dir.getChildObjects()) {
+        	if (file instanceof PortableDeviceFolderObject) {
+				System.out.println("directory:" + file.getOriginalFileName());
+            	PortableDeviceFolderObject dirI = (PortableDeviceFolderObject)file;
+
+            	// Now create the directory in the local flash folder
+        		folder = new File(folder + File.separator + file.getOriginalFileName());
+        		if (!folder.exists()) {
+        			folder.mkdirs();
+        		}
+            	
+            	// Now iterate through
+        		copyTabletToLocalFlash(device, dirI, folder);
+				folder = new File(folder + File.separator + ".." + File.separator);
+        	} else {
+				System.out.println("     file:" + file.getOriginalFileName());
+		    	PortableDeviceToHostImpl32 copy = new PortableDeviceToHostImpl32();
+            	try {
+            		// Copy the files out of the tablet now
+            		copy.copyFromPortableDeviceToHost(file.getID(), folder.getAbsolutePath(), device);
+            	} catch (COMException ex) {
+            	}
+        	}
+    	}
+	}
+
+	public static void cleanTabletData() {
+        PortableDeviceManager manager = new PortableDeviceManager();
+        
+        // Get the first device on the list.
+        for (PortableDevice device : manager.getDevices()) {
+	        // Connect to the tablet now
+	        device.open();
+	        
+	        // debug output
+	        Logger.getInstance().log("cleaning tablet data " + device.getModel());
+	
+	        // Iterate over deviceObjects
+	        for(PortableDeviceObject object : device.getRootObjects()) {
+	        	System.out.println(object);
+	       	
+	            // If the object is a storage object
+	            if(object instanceof PortableDeviceStorageObject) {
+	                PortableDeviceStorageObject storage = (PortableDeviceStorageObject)object;
+	                
+	                for(PortableDeviceObject o2 :  storage.getChildObjects()) {
+	                	System.out.println(o2.getOriginalFileName());
+	                	
+	                	// Check if the device object is a folder first
+	                	if (o2 instanceof PortableDeviceFolderObject) {
+	                		// Check if there is a frc folder
+    	                    if (o2.getOriginalFileName().equals("frc")) {
+    	                    	
+    	                    	// Now list all the content inside this frc folder object
+    	                    	PortableDeviceFolderObject frcFolder = (PortableDeviceFolderObject)o2;
+    	                		deleteTabletData(device, frcFolder);
+    	                    }	                		
+	                	}
+	            	}              
+	            }
+	        }
+	        device.close();
+        }
+	}
+	
+	public static void deleteTabletData(PortableDevice device, PortableDeviceFolderObject dir) {
+    	for(PortableDeviceObject file :  dir.getChildObjects()) {
+        	if (file instanceof PortableDeviceFolderObject) {
+            	PortableDeviceFolderObject dirI = (PortableDeviceFolderObject)file;
+
+            	// Now iterate through
+            	deleteTabletData(device, dirI);
+				System.out.println("Deleting directory:" + file.getOriginalFileName());
+        	} else {
+				System.out.println("     Deleting file:" + file.getOriginalFileName());
+        	}
+        	// Delete either an empty folder or an object
+        	file.delete();
+    	}
+	}
+	
 	public static void syncWithFlashDrive() throws IOException {
 		// IMPORTANT! First, make a backup of all the data we have now, both on the flash drive and on local
 		Calendar c = Calendar.getInstance(TimeZone.getTimeZone("CST"));

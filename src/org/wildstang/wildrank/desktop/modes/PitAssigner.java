@@ -69,7 +69,12 @@ public class PitAssigner extends Mode implements ActionListener, Runnable {
 			JSONObject currentTeam = eventTeamsListObject.getJSONObject(i);
 			JSONObject team = new JSONObject();
 			team.put("number", currentTeam.get("team_number"));
-			team.put("name", currentTeam.getString("nickname"));
+			try {
+				team.put("name", currentTeam.getString("nickname"));
+			} catch (Exception e) {
+				// It needs to catch teams that does not have a name yet.
+				team.put("name", "no name");
+			}
 			team.put("pit_group", posCounter);
 			posCounter++;
 			if (posCounter == numTablets) {

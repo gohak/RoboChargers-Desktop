@@ -29,10 +29,11 @@ public class PitReader {
 		br.write("(L,W,H): (" + Integer.toString(scoring.getInt("robot_length")) + "," + Integer.toString(scoring.getInt("robot_width")) + "," + Integer.toString(scoring.getInt("robot_height"))
 				+ ")\n");
 		br.write("Drivetrain: " + scoring.getString("drivetrain") + "\n");
-		br.write("Shooter: " + scoring.getString("shooter") + "\n");
-		br.write("Accumulator: " + convertBool(scoring.getBoolean("accumulator")) + "\n");
-		br.write("Catcher: " + convertBool(scoring.getBoolean("catcher")) + "\n");
-		br.write("Receives from HP: " + convertBool(scoring.getBoolean("receive_from_hp")));
+		br.write("Pick Up Recycling Container: " + convertBool(scoring.getBoolean("pick_up_rc")) + "\n");
+		br.write("Manipulates Recycling Container: " + convertBool(scoring.getBoolean("manipulate_rc")) + "\n");
+		br.write("Stacks Tote: " + convertBool(scoring.getBoolean("stack_tote")) + "\n");
+		br.write("Manipulate Tote: " + convertBool(scoring.getBoolean("manipulate_tote")) + "\n");
+		br.write("Stack Height: " + Integer.toString(scoring.getInt("robot_reach_height")) + "\n");
 		br.flush();
 		br.close();
 	}

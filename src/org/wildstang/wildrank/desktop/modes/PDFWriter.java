@@ -73,7 +73,7 @@ public class PDFWriter extends Mode implements ActionListener {
 
 	public void generatePDF(PDFType type) throws IOException, DocumentException {
 		GlobalAppHandler.getInstance().disableBackButton();
-		String fileName = "WildRank";
+		String fileName = "RoboChargers";
 		switch (type) {
 		case TYPE_NOTES:
 			fileName = "notes";
@@ -103,13 +103,13 @@ public class PDFWriter extends Mode implements ActionListener {
 		// step 4
 		switch (type) {
 		case TYPE_NOTES:
-			document.add(new Phrase("WildRank Notes"));
+			document.add(new Phrase("RoboChargers Notes"));
 			break;
 		case TYPE_PIT:
-			document.add(new Phrase("WildRank Pit Data"));
+			document.add(new Phrase("RoboChargers Pit Data"));
 			break;
 		case TYPE_ALL:
-			document.add(new Phrase("WildRank Notes and Pit Data"));
+			document.add(new Phrase("RoboChargers Notes and Pit Data"));
 		}
 		document.add(createTable(type));
 		// step 5

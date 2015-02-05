@@ -50,12 +50,12 @@ public class GlobalAppHandler implements ActionListener {
 			public void run() {
 				Logger.getInstance().printToSystem(true);
 				Logger.getInstance().log("Created!");
-				window = new JFrame("WildRank: Desktop");
+				window = new JFrame("RoboChargers: Desktop");
 				appData = new AppData(null, null, null);
 				content = new JPanel();
 				content.setLayout(new GridBagLayout());
 				content.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-				window.setMinimumSize(new Dimension(500, 300));
+				window.setMinimumSize(new Dimension(700, 500));
 				window.setLocationRelativeTo(null);
 				window.setResizable(true);
 				window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

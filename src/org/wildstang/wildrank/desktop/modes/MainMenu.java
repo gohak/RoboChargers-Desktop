@@ -23,6 +23,7 @@ public class MainMenu extends Mode implements ActionListener {
 	JButton addMatchManually;
 	JButton clearDirectories;
 	JButton noteAdder;
+	JButton initialSync;
 	JButton sync;
 	JButton newConfig;
 	JLabel about;
@@ -38,9 +39,9 @@ public class MainMenu extends Mode implements ActionListener {
 		generatePitCSV.addActionListener(MainMenu.this);
 		generatePDF = new JButton("Generate PDFs");
 		generatePDF.addActionListener(MainMenu.this);
-		setFlashLocation = new JButton("Set Flash Location");
+		setFlashLocation = new JButton("Set Local Tablet Flash Scratch Location");
 		setFlashLocation.addActionListener(MainMenu.this);
-		setLocalLocation = new JButton("Set Local Location");
+		setLocalLocation = new JButton("Set Local Location for the Entire Event");
 		setLocalLocation.addActionListener(MainMenu.this);
 		saveConfiguration = new JButton("Save Configuration");
 		saveConfiguration.addActionListener(MainMenu.this);
@@ -48,7 +49,9 @@ public class MainMenu extends Mode implements ActionListener {
 		compileNotes.addActionListener(MainMenu.this);
 		newConfig = new JButton("New Config File");
 		newConfig.addActionListener(MainMenu.this);
-		sync = new JButton("Sync with Flash Drive");
+		initialSync = new JButton("Set Up Tablet Initially");
+		initialSync.addActionListener(this);
+		sync = new JButton("Sync with the Tablet Drive");
 		sync.addActionListener(this);
 		noteAdder = new JButton("Add Notes Manually");
 		noteAdder.addActionListener(this);
@@ -125,6 +128,9 @@ public class MainMenu extends Mode implements ActionListener {
 			setMode(new EventSelector());
 		} else if (event.getSource() == saveConfiguration) {
 			appData.save();
+		} else if (event.getSource() == initialSync) {
+			// Put code here for initial sync with tablet
+			// TODO: Put code here for initial sync with tablet
 		} else if (event.getSource() == sync) {
 			setMode(new SyncWithFlashDrive());
 		} else if (event.getSource() == noteAdder) {

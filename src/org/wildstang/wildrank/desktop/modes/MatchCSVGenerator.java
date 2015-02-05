@@ -38,7 +38,7 @@ public class MatchCSVGenerator extends Mode implements ActionListener {
 	public void actionPerformed(ActionEvent event) {
 		GlobalAppHandler.getInstance().disableBackButton();
 		if (event.getSource() == retrieve) {
-			File csv = new File(FileUtilities.getNonsyncedDirectory() + File.separator + "event" + File.separator + "WildRank.csv");
+			File csv = new File(FileUtilities.getNonsyncedDirectory() + File.separator + "event" + File.separator + "RoboChargers.csv");
 			File matchesLocation = new File(FileUtilities.getSyncedDirectory() + File.separator + "matches");
 			csv.getParentFile().mkdirs();
 			matchesLocation.getParentFile().mkdirs();

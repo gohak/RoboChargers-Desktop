@@ -75,7 +75,12 @@ public class EventSelector extends Mode implements ActionListener {
 					for (int i = 0; i < teamEvents.length(); i++) {
 						JSONObject currentEvent = teamEvents.getJSONObject(i);
 						eventKeys.add(currentEvent.getString("key"));
-						String shortName = currentEvent.getString("short_name");
+						String shortName = "";
+						try {
+							shortName = currentEvent.getString("short_name");
+						} catch (Exception e) {
+							shortName = "";						
+						}
 						eventButtons.add(new JButton(shortName));
 						eventButtons.get(i).addActionListener(EventSelector.this);
 						c.gridx = x;

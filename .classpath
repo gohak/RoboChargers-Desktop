@@ -25,5 +25,6 @@
 	<classpathentry kind="lib" path="libs/itextg-5.4.5-javadoc.jar"/>
 	<classpathentry kind="lib" path="libs/itextg-5.4.5-sources.jar"/>
 	<classpathentry kind="lib" path="libs/itextg-5.4.5.jar"/>
+	<classpathentry kind="lib" path="libs/jMTPe.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
