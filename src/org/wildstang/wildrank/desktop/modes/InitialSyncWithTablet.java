@@ -13,19 +13,25 @@ import javax.swing.JProgressBar;
 import org.wildstang.wildrank.desktop.utils.FileUtilities;
 import org.wildstang.wildrank.desktop.utils.Logger;
 
-public class SyncWithFlashDrive extends Mode implements ActionListener, Runnable {
+public class InitialSyncWithTablet extends Mode implements ActionListener, Runnable {
 
 	JProgressBar progressBar;
-	JButton sync;
+	JButton initialSync;
 	Thread thread;
 
 	@Override
 	protected void initializePanel() {
 		progressBar = new JProgressBar();
 		// add text to specify that they need to plug in the tablet now
-		JLabel syncLabel = new JLabel("Connect the Tablet now to the PC first before clicking Sync below");
-		sync = new JButton("Sync with the Tablet Now");
-		sync.addActionListener(this);
+        String html1 = "<html><body style='width: ";
+        String html2 = "px'>";
+		JLabel syncLabel = new JLabel(html1 + "500" + html2  + "This is the initial sync with the tablet that has no matches "
+				+ "information on the tablet. If there is existing information, current workaround, "
+				+ "delete the Android application first and then redownload it. Then connect the "
+				+ "Tablet to the PC first before clicking Sync below. And then follow the instructions "
+				+ "on the screen as it progresses.");
+		initialSync = new JButton("Prepare the Tablet Now");
+		initialSync.addActionListener(this);
 		c.gridx = 0;
 		c.gridy = 0;
 		c.gridwidth = 1;
@@ -33,7 +39,7 @@ public class SyncWithFlashDrive extends Mode implements ActionListener, Runnable
 		c.gridx = 0;
 		c.gridy = 1;
 		c.gridwidth = 3;
-		panel.add(sync, c);
+		panel.add(initialSync, c);
 		c.gridx = 0;
 		c.gridy = 2;
 		c.gridwidth = 3;
@@ -43,26 +49,26 @@ public class SyncWithFlashDrive extends Mode implements ActionListener, Runnable
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
-		if (event.getSource() == sync) {
+		if (event.getSource() == initialSync) {
 			attemptSyncronization();
 		}
 	}
 
 	@Override
 	public void run() {
-		update.updateData("Syncing", 0, 0);
+		update.updateData("Setting up Tablet", 0, 0);
 		progressBar.setIndeterminate(true);
 
 		try {
-			FileUtilities.syncWithTablet(FileUtilities.RESYNC);
+			// Perform the initial sync only
+			// TODO: need to create a FRC folder
 
-			// Now let the application sync what was just taken out of the tablet with the 
-			// local folder
-			FileUtilities.syncWithFlashDrive();
+			// Data Local --> Tablet
+			FileUtilities.syncWithTablet(FileUtilities.INITIALSYNC);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		update.updateData("Done syncing with flashdrive", 0, 0);
+		update.updateData("Done syncing with tablet", 0, 0);
 		progressBar.setIndeterminate(false);
 		progressBar.setMaximum(1);
 		progressBar.setValue(1);
@@ -77,7 +83,7 @@ public class SyncWithFlashDrive extends Mode implements ActionListener, Runnable
 				Logger.getInstance().log("USB connected!");
 				thread = new Thread(this);
 				thread.start();
-				sync.setEnabled(false);
+				initialSync.setEnabled(false);
 			} else {
 				Logger.getInstance().log("USB not connected!");
 				JFrame frame = new JFrame();
@@ -94,7 +100,7 @@ public class SyncWithFlashDrive extends Mode implements ActionListener, Runnable
 		else {
 			JFrame frame = new JFrame();
 			String[] options = { "Cancel", "Try again" };
-			int choice = JOptionPane.showOptionDialog(frame, "Please connect a tablet before trying to sync", "Connect Tablet", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null,
+			int choice = JOptionPane.showOptionDialog(frame, "Please connect a tablet before performing the initial sync", "Connect Tablet", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null,
 					options, options[0]);
 			if (choice == 0) {
 				setMode(new MainMenu());

@@ -1,7 +1,5 @@
 package org.wildstang.wildrank.desktop.utils;
 
-import java.awt.AWTEvent;
-import java.awt.AWTException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,10 +28,16 @@ import be.derycke.pieter.com.COMException;
 import jmtp.*;
 
 public class FileUtilities {
+	public static final int INITIALSYNC = 0;
+	public static final int RESYNC = 1;
 
 	public static boolean isTabletConnected() {
+
+		// Check if you have the DLL and notify user
+		loadLib("", "jmtp.dll"); 
+	
 		System.setProperty( "java.library.path", "libs" );
-		
+
         PortableDeviceManager manager = new PortableDeviceManager();
 
         for (PortableDevice device : manager.getDevices()) {
@@ -65,12 +69,14 @@ public class FileUtilities {
 		return new File("save.json").exists();
 	}
 
-	public static void syncWithTablet() throws IOException {
+	public static void syncWithTablet(int mode) throws IOException {
+        Logger.getInstance().log("Attempting to Sync with Tablet");
+
 		// Copy all the content from the local Tablet Flash scratch directory to Tablet
 		if (syncLocalFlashToTablet()) {
 
 			// Now wait for user input. The user would need to now sync the tablet via "Synchronize with PC" on the Tablet
-			if (waitForTabletToSync() == 1) {
+			if (waitForTabletToSync(mode) == 1) {
 				// Now it copies all the data out of the tablet back to the local flash location
 				syncTabletToLocalFlash();
 			}
@@ -230,10 +236,20 @@ public class FileUtilities {
         }
 	}
 		
-	public static int waitForTabletToSync() {
+	public static int waitForTabletToSync(int mode) {
 		JFrame frame = new JFrame();
 		String[] options = { "Cancel", "Done!" };
-		int choice = JOptionPane.showOptionDialog(frame, "On the Tablet, Press Synchronize with PC now TWICE", "Synchronize with Tablet", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
+		String dialogText = "";
+		if (mode == INITIALSYNC) {
+			dialogText = "On the newly installed Tablet, Press USB Drive Now. Wait and press Done when the Tablet is finished Synching.";
+		} else if (mode == RESYNC) {
+			dialogText = "On the Tablet, Press Synchronize with PC now. Wait and press Done when the Tablet is finished Synching.";
+		} else {
+			dialogText = "Program Error";
+		}
+		
+		int choice = JOptionPane.showOptionDialog(frame, dialogText, "Synchronize with Tablet",
+				JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
 				options, options[0]);
 		return choice;
 	}
@@ -549,4 +565,13 @@ public class FileUtilities {
 		}
 	}
 
+	private static void loadLib(String path, String name) {
+	    try {
+	    	File fileOut = new File(path + name);
+	    	System.load(fileOut.getAbsolutePath());
+	    } catch (UnsatisfiedLinkError e) {
+	    	 Logger.getInstance().log("Native code library failed to load.\n" + e);
+	    	 Logger.getInstance().log("Please ensure to jave JRE v7.0 or newer with 32-bit suppport. Not 64-bit.");
+	    }
+	}
 }

@@ -28,10 +28,12 @@ public class MainMenu extends Mode implements ActionListener {
 	JButton newConfig;
 	JLabel about;
 	JLabel aboutb;
+	JLabel labelConfiguration;
+	JLabel labelNewEvent;
 
 	@Override
 	protected void initializePanel() {
-		getEventData = new JButton("Get Event Data");
+		getEventData = new JButton("Get New Event Data");
 		getEventData.addActionListener(MainMenu.this);
 		generateMatchCSV = new JButton("Generate CSV");
 		generateMatchCSV.addActionListener(MainMenu.this);
@@ -65,47 +67,64 @@ public class MainMenu extends Mode implements ActionListener {
 		about.setHorizontalAlignment(SwingConstants.CENTER);
 		aboutb = new JLabel(" " + appData.getLocalLocation().toString());
 		aboutb.setHorizontalAlignment(SwingConstants.CENTER);
+		labelConfiguration = new JLabel("Settings");
+		labelNewEvent = new JLabel("New Event Configuration");
+		
+		int gridyCount = 0;
+		
 		c.gridx = 0;
-		c.gridy = 0;
+		c.gridy = gridyCount++;
 		c.gridwidth = 2;
 		panel.add(sync, c);
-		c.gridwidth = 1;
-		c.gridy = 1;
-		panel.add(getEventData, c);
-		c.gridx = 1;
-		panel.add(generatePitCSV, c);
 		c.gridx = 0;
-		c.gridy = 2;
+		c.gridy = gridyCount++;
+		c.gridwidth = 1;
+		panel.add(generatePitCSV, c);
+		c.gridx = 1;
+		panel.add(compileNotes, c);
+		c.gridx = 0;
+		c.gridy = gridyCount++;
 		panel.add(generateMatchCSV, c);
 		c.gridx = 1;
 		panel.add(generatePDF, c);
 		c.gridx = 0;
-		c.gridy = 3;
-		panel.add(compileNotes, c);
-		c.gridx = 1;
+		c.gridy = gridyCount++;
 		panel.add(addTeamsManually, c);
-		c.gridx = 0;
-		c.gridy = 4;
-		panel.add(addMatchManually, c);
 		c.gridx = 1;
+		panel.add(addMatchManually, c);
+		c.gridx = 0;
+		c.gridy = gridyCount++;
 		panel.add(noteAdder, c);
 		c.gridx = 0;
-		c.gridy = 5;
+		c.gridy = gridyCount++;
+		c.gridwidth = 2;
+		panel.add(labelNewEvent, c);
+		c.gridx = 0;
+		c.gridy = gridyCount++;
+		panel.add(getEventData, c);
+		c.gridx = 0;
+		c.gridy = gridyCount++;
+		panel.add(initialSync, c);
+		c.gridx = 0;
+		c.gridy = gridyCount++;
+		c.gridwidth = 1;
+		panel.add(labelConfiguration, c);
+		c.gridy = gridyCount++;
 		panel.add(setFlashLocation, c);
 		c.gridx = 1;
 		panel.add(setLocalLocation, c);
 		c.gridx = 0;
-		c.gridy = 6;
+		c.gridy = gridyCount++;
 		panel.add(about, c);
 		c.gridx = 1;
 		panel.add(aboutb, c);
 		c.gridx = 0;
-		c.gridy = 7;
+		c.gridy = gridyCount++;
 		c.gridwidth = 2;
 		panel.add(saveConfiguration, c);
-		c.gridy = 8;
+		c.gridy = gridyCount++;
 		panel.add(clearDirectories, c);
-		c.gridy = 9;
+		c.gridy = gridyCount++;
 		panel.add(newConfig, c);
 		update.setMode("Main Menu");
 	}
@@ -129,8 +148,7 @@ public class MainMenu extends Mode implements ActionListener {
 		} else if (event.getSource() == saveConfiguration) {
 			appData.save();
 		} else if (event.getSource() == initialSync) {
-			// Put code here for initial sync with tablet
-			// TODO: Put code here for initial sync with tablet
+			setMode(new InitialSyncWithTablet());
 		} else if (event.getSource() == sync) {
 			setMode(new SyncWithFlashDrive());
 		} else if (event.getSource() == noteAdder) {

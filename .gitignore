@@ -34,3 +34,4 @@ save.json
 
 # Windows Thumbs.db
 Thumbs.db
+/.apt_generated/
