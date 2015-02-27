@@ -85,12 +85,21 @@ public class PitAssigner extends Mode implements ActionListener, Runnable {
 		JSONObject rootObject = new JSONObject();
 		rootObject.put("team", teamsArray);
 		File file = new File(FileUtilities.getSyncedDirectory() + File.separator + "event" + File.separator + "pit.json");
+		File flashFile = new File(FileUtilities.getFlashDriveSyncedDirectory() + File.separator + "event" + File.separator + "pit.json");
 		file.getParentFile().mkdirs();
+		flashFile.getParentFile().mkdirs();
 		try {
 			if (!file.exists()) {
 				file.createNewFile();
 			}
+			if (!flashFile.exists()) {
+				flashFile.createNewFile();
+			}
 			BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+			bw.write(rootObject.toString());
+			bw.flush();
+			bw.close();
+			bw = new BufferedWriter(new FileWriter(flashFile));
 			bw.write(rootObject.toString());
 			bw.flush();
 			bw.close();

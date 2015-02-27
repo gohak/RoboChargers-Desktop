@@ -67,9 +67,17 @@ public class EventConfigurationDownloader extends Mode implements ActionListener
 		jsonEvent.put("matches", matchesJSONArray);
 
 		File localFile = new File(FileUtilities.getSyncedDirectory() + File.separator + "event" + File.separator + "event.json");
+		File flashFile = new File(FileUtilities.getFlashDriveSyncedDirectory() + File.separator + "event" + File.separator + "event.json");
+		localFile.getParentFile().mkdirs();
+		flashFile.getParentFile().mkdirs();
 		try {
 			localFile.createNewFile();
+			flashFile.createNewFile();
 			BufferedWriter bw = new BufferedWriter(new FileWriter(localFile));
+			bw.write(jsonEvent.toString());
+			bw.flush();
+			bw.close();
+			bw = new BufferedWriter(new FileWriter(flashFile));
 			bw.write(jsonEvent.toString());
 			bw.flush();
 			bw.close();
