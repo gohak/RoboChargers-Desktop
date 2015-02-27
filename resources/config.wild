@@ -1,14 +1,17 @@
 game-name: Recycle Rush
 main-key: scoring
 section-key: autonomous
-item: Started in Staging Zone, staging_zone; bool
-item: Auto Movement, auto_move; bool
-item: Interference, auto_inter; bool
-item: RC Grab, auto_rc_grab; bool
-item: Robot Set, auto_robot_set; bool
-item: RC Set, auto_rc_set; bool
+item: Started in Staging Zone 1, starting_pos_one; bool
+item: Started in Staging Zone 2, starting_pos_two; bool
+item: Started in Staging Zone 3, starting_pos_three; bool
+item: Started Forward Zone, auto_start_fwd_zone; bool
+item: Tote Grab, auto_tote_grab; num
+item: RC Grab, auto_rc_grab; num
+item: Move to Auto Zone, auto_move; bool
+item: RC from Step, auto_rc_from_step; num
 item: Tote Set, auto_tote_set; bool
 item: Tote Stack, auto_tote_stack; bool
+item: RC Set, auto_rc_set; bool
 section-key: teleop
 item: Stack Speed (Sec.), stack_speed_sec; num
 item: Max Stack Height, max_stack_height; num
